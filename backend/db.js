@@ -1,8 +1,8 @@
 const pg = require('pg')
 
-const pool = pg.Pool({
-  user: 'delta',
-  password: '',
+const pool = new pg.Pool({
+  user: 'node_dev',
+  password: '5995',
   host: 'localhost',
   port: 5432,
   database: 'to_do_pern'

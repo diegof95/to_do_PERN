@@ -4,7 +4,7 @@
   "description": "Back end that exposes Rest API for a To Do app with Pern stack",
   "main": "index.js",
   "scripts": {
-    "test": "nodemon app.js"
+    "start": "nodemon app.js"
   },
   "keywords": [
     "node",
