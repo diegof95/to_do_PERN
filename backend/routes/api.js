@@ -13,6 +13,7 @@ router.get(
     }
     catch(error){
       console.log(error.stack)
+      response.status(400).json({msg: `Error: ${error.message}`})
     }
   }
 )
@@ -30,22 +31,51 @@ router.post(
     }
     catch(error){
       console.log(error.stack)
+      response.status(400).json({msg: `Error: ${error.message}`})
     }
   }
 )
-/*
+
 router.put(
-  '/',
-  (request, response) => {
-    
+  '/:id',
+  async (request, response) => {
+    try{
+      const id = request.params.id
+      const {description, is_done} = request.body
+      const query = await pool.query(
+        `UPDATE to_do
+          SET
+            description = ($1),
+            is_done = ($2)
+          WHERE to_do_id = ($3)`,
+        [description, is_done, id]
+      )
+      response.redirect(200,'/api')
+    }
+    catch(error){
+      console.log(error.stack)
+      response.status(400).json({msg: `Error: ${error.message}`})
+    }
   }
 )
 
 router.delete(
-  '/',
-  (request, response) => {
-    
+  '/:id',
+  async (request, response) => {
+    try{
+      const id = request.params.id
+      const query = await pool.query(
+        `DELETE FROM to_do
+          WHERE to_do_id = ($1)`,
+        [id]
+      )
+      response.redirect(200,'/api')
+    }
+    catch(error){
+      console.log(error.stack)
+      response.status(400).json({msg: `Error: ${error.message}`})
+    }
   }
-)*/
+)
 
 module.exports = router
