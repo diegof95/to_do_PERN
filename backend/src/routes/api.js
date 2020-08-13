@@ -23,6 +23,7 @@ router.post(
   async (request, response) => {
     try{
       const { description } = request.body
+      console.log(description)
       const query = await pool.query(
         'INSERT INTO to_do(description) VALUES ($1)',
         [description]

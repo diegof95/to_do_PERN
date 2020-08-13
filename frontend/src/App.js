@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useReducer } from 'react'
-import { Container } from 'react-bootstrap'
+import { Container, Form } from 'react-bootstrap'
 import axios from 'axios'
 import useFetchToDoList from './fetching'
 import 'regenerator-runtime/runtime'
 
-const API_ENDPOINT = 'localhost:5000/api'
+const API_ENDPOINT = 'http://localhost:5000/api'
 
 function App(props) {
   
-  const {toDoList, Loading, error} = useFetchToDoList()
+  const {toDoList, loading, error} = useFetchToDoList()
 
+  console.log(toDoList, loading, error)
   return (
     <Container>
       <h1 className="title">My To Do List</h1>
-      <Form />
+      <AddForm />
       <hr />
       { toDoList.error && <p>Something went wrong loading data...</p> }
       { toDoList.loading ?
@@ -27,7 +28,7 @@ function App(props) {
   )
 }
 
-function Form(props){
+function AddForm(props){
 
   const [toDo, setToDo] = useState('')
 
@@ -39,14 +40,18 @@ function Form(props){
     event.preventDefault()
 
     try{
-      const reqBody = { description: toDo, done: false }
+      const reqBody = { description: toDo }
       const response = await axios.post(
-        API_ENDPOINT, reqBody
+        API_ENDPOINT,
+        reqBody
       )
+      console.log(`response:${response.headers}`)
     }
     catch(error){
-      console.log(error)
+      console.log(`error:${error}`)
     }
+
+    location.reload() // Probably temporary way of showing ToDo list + added ToDo
   }
 
   /**
@@ -58,33 +63,35 @@ function Form(props){
   }
 
   return(
-    <form className="" onSubmit={handleAdd}>
-      <LabeledInput
-        id="toDo"
-        value={toDo}
-        handleChange={handleInput}
-      >
-        To Do 
-      </LabeledInput>
-      <button className="button button-large" type="submit">
-        Add
-      </button>
-    </form>
+    <Form onSubmit={handleAdd}>
+      <Form.Group>
+        <LabeledInput
+          id="toDo"
+          value={toDo}
+          handleChange={handleInput}
+        >
+          To Do 
+        </LabeledInput>
+        <button className="btn btn-primary" type="submit">
+          Add
+        </button>
+      </Form.Group>
+    </Form>
   )
 }
 
 function LabeledInput({id, type="text", value, handleChange, children}){
   return(
-    <React.Fragment>
+    <div className="form-group">
     <label htmlFor={id} className="label">{children}</label>
     <input
       id={id}
-      className="input"
+      className="form-control"
       type={type}
       value={value}
       onChange={handleChange}
     />
-    </React.Fragment>
+    </div>
   )
 }
 

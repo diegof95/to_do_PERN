@@ -1,7 +1,8 @@
 import { useReducer, useEffect } from 'react'
 import axios from 'axios'
 
-const API_ENDPOINT = 'localhost:5000/api'
+// const PROXY = 'https://cors-anywhere.herokuapp.com/' // Not needed, using cors on server
+const API_ENDPOINT = 'http://localhost:5000/api'
 
 function reducer(state, action){
 
@@ -42,15 +43,16 @@ function useFetchToDoList(){
         dispatch({type: 'MAKE_REQUEST'})
 
         try{
-          result = await axios.get(API_ENDPOINT)
-          dispatchStories({
-            type: 'STORIES_FETCH_SUCCESS',
-            payload: result,
+          const result = await axios.get(API_ENDPOINT)
+          dispatch({
+            type: 'SUCCESS_REQUEST',
+            payload: result.data,
           })
         }
         catch(error){
-
+          console.error(error)
         }
+
       }
       fetchData()
     },
