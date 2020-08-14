@@ -38,11 +38,12 @@ router.post(
 )
 
 router.put(
-  '/:id',
+  '/',
   async (request, response) => {
     try{
-      const id = request.params.id
+      const id = request.query.id
       const {description, is_done} = request.body
+      console.log(description, is_done)
       const query = await pool.query(
         `UPDATE to_do
           SET

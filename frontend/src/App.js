@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useReducer } from 'react'
-import { Container, Form } from 'react-bootstrap'
+import { Container, Form, Table } from 'react-bootstrap'
 import axios from 'axios'
 import useFetchToDoList from './fetching'
 import 'regenerator-runtime/runtime'
@@ -45,7 +45,6 @@ function AddForm(props){
         API_ENDPOINT,
         reqBody
       )
-      console.log(`response:${response.headers}`)
     }
     catch(error){
       console.log(`error:${error}`)
@@ -97,23 +96,68 @@ function LabeledInput({id, type="text", value, handleChange, children}){
 
 function List({list}){
 
- return(
-    list.map( (item) => (
-      <ToDo
-        key={item.to_do_id}
-        description={item.description}
-      />
-    ))
+  return(
+    <Table>
+      <thead>
+        <tr>
+          <th>To Do Description</th>
+          <th>Done!</th>
+          <th>Edit</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+      { list.map( (item) => (
+        <ToDo
+          key={item.to_do_id}
+          to_do_id={item.to_do_id}
+          description={item.description}
+        />
+      )) }
+      </tbody>
+    </Table>
   )
 }
 
 
-function ToDo({description}){
+function ToDo({to_do_id, description}){
+
+  const handleDone = async () => {
+    try{
+      const reqBody = { description, is_done: true }
+      console.log(reqBody)
+      const response = await axios.put(
+        API_ENDPOINT,
+        reqBody,
+        {
+          params: { id: to_do_id }
+        }
+      )
+    }
+    catch(error){
+      console.log(`error:${error}`)
+    }
+  }
+
+  const handleEdit = () => {
+
+  }
+
+  const handleDelete = () => {
+
+  }
 
   return(
-    <div>
-      {description}
-    </div>
+    <tr>
+      <td>{description}</td>
+      <td>
+        <button className="btn btn-success" onClick={handleDone}>
+          Done
+        </button>
+      </td>
+      <td><button className="btn btn-danger">Edit</button></td>
+      <td><button className="btn btn-danger">Delete</button></td>
+    </tr>
   )
 }
 
