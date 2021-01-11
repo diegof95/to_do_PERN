@@ -8,8 +8,8 @@ router.get(
   async (request, response) => {
 
     try{
-      const to_dos = await pool.query('SELECT * FROM to_do')
-      response.json(to_dos.rows)
+      const to_do_list = await pool.query('SELECT * FROM to_do')
+      response.json(to_do_list.rows)
     }
     catch(error){
       console.log(error.stack)
@@ -62,10 +62,11 @@ router.put(
 )
 
 router.delete(
-  '/:id',
+  '/',
   async (request, response) => {
     try{
-      const id = request.params.id
+      const id = request.query.id
+      console.log(id)
       const query = await pool.query(
         `DELETE FROM to_do
           WHERE to_do_id = ($1)`,

@@ -1,65 +1,112 @@
 import React, { useState, useEffect, useReducer } from 'react'
 import { Container, Form, Table } from 'react-bootstrap'
 import axios from 'axios'
-import useFetchToDoList from './fetching'
+import { reducer } from './utils'
 import 'regenerator-runtime/runtime'
 
 const API_ENDPOINT = 'http://localhost:5000/api'
 
 function App(props) {
   
-  const {toDoList, loading, error} = useFetchToDoList()
+  const [newToDo, setNewToDo] = useState('')
+  const [toDos, dispatchToDos] = useReducer(
+    reducer,
+    {
+      toDoList: [],
+      loading: false,
+      error: false
+    }
+  )
 
-  console.log(toDoList, loading, error)
+  /**
+  * Handler that makes toDo input controlled
+  */
+  const handleInput = (event) => {
+    setNewToDo(event.target.value)
+  }
+
+  /**
+  * Handler that adds a ToDo to my To Do list
+  */
+  const handleAdd = async (event) => {
+    event.preventDefault()
+
+    try{
+      const reqBody = { description: newToDo }
+      const response = await axios.post(
+        API_ENDPOINT,
+        reqBody
+      )
+      dispatchToDos({
+          type: 'ADD_TODO',
+          payload: response.data,
+        })
+    }
+    catch(error){
+      console.log(`error:${error}`)
+    }
+  }
+
+  const handleDelete = async (toDoId) => {
+    console.log(toDoId)
+    try{
+      const response = await axios.delete(
+        API_ENDPOINT,
+        {
+          params: { id: toDoId }
+        }
+      )
+      dispatchToDos(
+        {
+          type: 'DELETE_TODO',
+          payload: { toDoId }
+        }
+      )
+    }
+    catch(error){
+      console.log(`error:${error}`)
+    }
+  }
+
+  const getToDoList = () => {
+    const fetchData = async () => {
+      dispatchToDos({type: 'MAKE_REQUEST'})
+
+      try{
+        const result = await axios.get(API_ENDPOINT)
+        dispatchToDos({
+          type: 'SUCCESS_REQUEST',
+          payload: result.data,
+        })
+      }
+      catch(error){
+        console.error(error)
+      }
+    }
+    fetchData()
+  }
+
+  useEffect(getToDoList, [])
+
   return (
     <Container>
       <h1 className="title">My To Do List</h1>
-      <AddForm />
+      <AddForm handleInput={handleInput} handleAdd={handleAdd}/>
       <hr />
-      { toDoList.error && <p>Something went wrong loading data...</p> }
-      { toDoList.loading ?
+      { toDos.error && <p>Something went wrong loading data...</p> }
+      { toDos.loading ?
         <p>Loading data...</p>
         :
         <List
-          list={ toDoList }
+          list={toDos.toDoList}
+          handleDelete={handleDelete}
         />
       }
     </Container>
   )
 }
 
-function AddForm(props){
-
-  const [toDo, setToDo] = useState('')
-
-  /**
-  * Handler that adds a ToDo to my To Do list
-  * 
-  */
-  const handleAdd = async (event) => {
-    event.preventDefault()
-
-    try{
-      const reqBody = { description: toDo }
-      const response = await axios.post(
-        API_ENDPOINT,
-        reqBody
-      )
-    }
-    catch(error){
-      console.log(`error:${error}`)
-    }
-
-    location.reload() // Probably temporary way of showing ToDo list + added ToDo
-  }
-
-  /**
-  * Handler that makes toDo input controlled
-  * 
-  */
-  const handleInput = (event) => {
-    setToDo(event.target.value)
-  }
+function AddForm({toDo, handleInput, handleAdd}){
 
   return(
     <Form onSubmit={handleAdd}>
@@ -94,7 +141,7 @@ function LabeledInput({id, type="text", value, handleChange, children}){
   )
 }
 
-function List({list}){
+function List({list, handleDelete}){
 
   return(
     <Table>
@@ -110,8 +157,9 @@ function List({list}){
       { list.map( (item) => (
         <ToDo
           key={item.to_do_id}
-          to_do_id={item.to_do_id}
+          toDoId={item.to_do_id}
           description={item.description}
+          handleDelete={handleDelete}
         />
       )) }
       </tbody>
@@ -120,17 +168,16 @@ function List({list}){
 }
 
 
-function ToDo({to_do_id, description}){
+function ToDo({toDoId, description, handleDelete}){
 
   const handleDone = async () => {
     try{
       const reqBody = { description, is_done: true }
-      console.log(reqBody)
       const response = await axios.put(
         API_ENDPOINT,
         reqBody,
         {
-          params: { id: to_do_id }
+          params: { id: toDoId }
         }
       )
     }
@@ -143,10 +190,6 @@ function ToDo({to_do_id, description}){
 
   }
 
-  const handleDelete = () => {
-
-  }
-
   return(
     <tr>
       <td>{description}</td>
@@ -155,8 +198,14 @@ function ToDo({to_do_id, description}){
           Done
         </button>
       </td>
-      <td><button className="btn btn-danger">Edit</button></td>
-      <td><button className="btn btn-danger">Delete</button></td>
+      <td><button className="btn btn-primary">Edit</button></td>
+      <td>
+        <button 
+          className="btn btn-danger"
+          onClick={() => handleDelete(toDoId)}>
+            Delete
+        </button>
+      </td>
     </tr>
   )
 }
