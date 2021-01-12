@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useReducer } from 'react'
-import { Container, Form, Table } from 'react-bootstrap'
+import { Container, FormControl, Col, Form, Table, Button } from 'react-bootstrap'
 import axios from 'axios'
 import { reducer } from './utils'
 import 'regenerator-runtime/runtime'
@@ -90,7 +90,7 @@ function App(props) {
 
   return (
     <Container>
-      <h1 className="title">My To Do List</h1>
+      <h1 className="title text-center my-4">My To Do List</h1>
       <AddForm handleInput={handleInput} handleAdd={handleAdd}/>
       <hr />
       { toDos.error && <p>Something went wrong loading data...</p> }
@@ -110,34 +110,40 @@ function AddForm({toDo, handleInput, handleAdd}){
 
   return(
     <Form onSubmit={handleAdd}>
-      <Form.Group>
-        <LabeledInput
-          id="toDo"
-          value={toDo}
-          handleChange={handleInput}
-        >
-          To Do 
-        </LabeledInput>
-        <button className="btn btn-primary" type="submit">
-          Add
-        </button>
-      </Form.Group>
+        <Form.Row>
+          <Col sm={10}>
+            <LabeledInput
+              id="toDo"
+              value={toDo}
+              placeholder="What do you wanna do next?"
+              handleChange={handleInput}
+            >
+              Add new ToDo
+            </LabeledInput>
+          </Col>
+          <Col sm={2}>
+            <button className="btn btn-primary" type="submit">
+              Add
+            </button>
+          </Col>
+        </Form.Row>
     </Form>
   )
 }
 
-function LabeledInput({id, type="text", value, handleChange, children}){
+function LabeledInput({id, type="text", placeholder="", value, handleChange, children}){
   return(
-    <div className="form-group">
-    <label htmlFor={id} className="label">{children}</label>
-    <input
-      id={id}
-      className="form-control"
-      type={type}
-      value={value}
-      onChange={handleChange}
-    />
-    </div>
+    <>
+      <Form.Label htmlFor={id} className="label" srOnly>{children}</Form.Label>
+      <FormControl
+        id={id}
+        placeholder={placeholder}
+        className="form-control"
+        type={type}
+        value={value}
+        onChange={handleChange}
+      />
+    </>
   )
 }
 
@@ -159,6 +165,7 @@ function List({list, handleDelete}){
           key={item.to_do_id}
           toDoId={item.to_do_id}
           description={item.description}
+          isDone={item.is_done}
           handleDelete={handleDelete}
         />
       )) }
@@ -168,9 +175,12 @@ function List({list, handleDelete}){
 }
 
 
-function ToDo({toDoId, description, handleDelete}){
+function ToDo({toDoId, description, isDone, handleDelete}){
 
-  const handleDone = async () => {
+  const [toDoDesc, setToDoDesc] = useState(description)
+  const [editing, setEditing] = useState(false)
+
+  /* const handleDone = async () => {
     try{
       const reqBody = { description, is_done: true }
       const response = await axios.put(
@@ -185,20 +195,59 @@ function ToDo({toDoId, description, handleDelete}){
       console.log(`error:${error}`)
     }
   }
+ */
+  const handleEdit = async () => {
+    if(editing){
+      try{
+        const reqBody = { description: toDoDesc, is_done: isDone }
+        const response = await axios.put(
+          API_ENDPOINT,
+          reqBody,
+          {
+            params: { id: toDoId }
+          }
+        )
+        setEditing(false)
+      }
+      catch(error){
+        console.log(`error:${error}`)
+      }
+    }else{
+      setEditing(true)
+    }
+  }
 
-  const handleEdit = () => {
-
+  const handleInput = (event) => {
+    setToDoDesc(event.target.value)
   }
 
   return(
     <tr>
-      <td>{description}</td>
+      { editing ?
+      <td> 
+        <LabeledInput
+          id="editToDo"
+          value={toDoDesc}
+          placeholder="What you wanna do next?"
+          handleChange={handleInput}
+        />
+      </td>
+      :
+      <td>{toDoDesc}</td>
+      }
       <td>
-        <button className="btn btn-success" onClick={handleDone}>
+        <button className="btn btn-success" >
           Done
         </button>
       </td>
-      <td><button className="btn btn-primary">Edit</button></td>
+      <td>
+        <Button
+          variant={editing ? "primary" : "outline-primary"}
+          onClick={handleEdit}
+        >
+          Edit    
+        </Button>
+      </td>
       <td>
         <button 
           className="btn btn-danger"
